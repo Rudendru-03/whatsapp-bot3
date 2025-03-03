@@ -21,7 +21,7 @@ export async function GET() {
                 },
                 { noAck: false }
             );
-            setTimeout(resolve, 500);
+            setTimeout(resolve, 12000);
         });
 
         await channel.close();

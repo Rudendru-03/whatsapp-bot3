@@ -3,7 +3,6 @@
 import { JSX, useState, useRef, useEffect } from "react";
 import { MessageSquareMore } from "lucide-react";
 import { Button } from "./ui/button";
-import { readExcel } from "@/lib/readExcel";
 import pLimit from 'p-limit';
 
 interface Message {

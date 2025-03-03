@@ -1,12 +1,53 @@
 import { NextRequest, NextResponse } from "next/server";
+import { readExcel } from "@/lib/readExcel";
 
 const WHATSAPP_ACCESS_TOKEN = process.env.NEXT_PUBLIC_WHATSAPP_API_TOKEN;
 const PHONE_NUMBER_ID = process.env.NEXT_PUBLIC_WHATSAPP_PHONE_NUMBER_ID;
+
+async function sendCatalogMessage(to: string) {
+    try {
+        const url = `https://graph.facebook.com/v19.0/${PHONE_NUMBER_ID}/messages`;
+        const { products } = await readExcel();
+        const messageBody = Object.entries(products)
+            .map(([grade, items]) => `*Grade ${grade}*\n${items.join("\n")}`)
+            .join("\n\n");
+
+        const response = await fetch(url, {
+            method: "POST",
+            headers: {
+                Authorization: `Bearer ${WHATSAPP_ACCESS_TOKEN}`,
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                messaging_product: "whatsapp",
+                recipient_type: "individual",
+                to: to,
+                type: "text",
+                text: {
+                    preview_url: false,
+                    body: messageBody
+                },
+            }),
+        });
+
+        const responseData = await response.json();
+        if (!response.ok) {
+            throw new Error(responseData.error?.message);
+        }
+
+        
+
+        return responseData;
+    } catch (error: any) {
+        throw error;
+    }
+}
 
 export async function POST(req: NextRequest) {
     try {
         const formData = await req.formData();
         const phone = formData.get("phone") as string;
+        sendCatalogMessage(phone);
 
         if (!phone) {
             return NextResponse.json({ error: "Phone number is required" }, { status: 400 });
