@@ -1,9 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import * as xlsx from "xlsx";
-import * as fs from "fs";
-import * as path from "path";
 import getRabbitMQChannel from "@/lib/rabbitmq";
-// import { appendToGoogleSheet } from "@/lib/googleSheets";
+import { readExcel } from "@/lib/readExcel";
 
 const VERIFY_TOKEN = process.env.WHATSAPP_VERIFY_TOKEN;
 const WHATSAPP_API_TOKEN = process.env.NEXT_PUBLIC_WHATSAPP_API_TOKEN;
@@ -178,6 +175,10 @@ async function sendCatalogMessage(to: string) {
     try {
         log(`Sending product catalog to ${to}`, '📋');
         const url = `https://graph.facebook.com/v19.0/${WHATSAPP_PHONE_NUMBER_ID}/messages`;
+        const { products } = await readExcel();
+        const messageBody = Object.entries(products)
+            .map(([grade, items]) => `*Grade ${grade}*\n${items.join("\n")}`)
+            .join("\n\n");
 
         const response = await fetch(url, {
             method: "POST",
@@ -192,20 +193,7 @@ async function sendCatalogMessage(to: string) {
                 type: "text",
                 text: {
                     preview_url: false,
-                    body: `*Grade A*\n
-12 64 $200 | 12 128 $230\n12p 128 $260 | 12p 256 $280\n
-12pm 128 $340 | 12pm 256 $380\n13 128 $270 | 13mini 128 $240\n
-13p 128 $350 | 13p 256 $380\n13pm 128 $420 | 13pm 256 $470\n
-\n
-*Grade B*\n
-12 64 $180 | 12 128 $210\n12p 128 $240 | 12p 256 $260\n
-12pm 128 $310 | 12pm 256 $350\n13 128 $250 | 13mini 128 $220\n
-13p 128 $320 | 13p 256 $350\n13pm 128 $390 | 13pm 256 $440\n
-\n
-*Grade C*\n
-12 64 $150 | 12 128 $180\n12p 128 $200 | 12p 256 $220\n
-12pm 128 $270 | 12pm 256 $300\n13 128 $220 | 13mini 128 $200\n
-13p 128 $280 | 13p 256 $320\n13pm 128 $350 | 13pm 256 $400`
+                    body: messageBody
                 },
             }),
         });
