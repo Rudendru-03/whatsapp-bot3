@@ -74,7 +74,7 @@ export default function Page() {
   useEffect(() => {
     async function fetchMessages() {
       try {
-        const res = await fetch("http://45.33.101.184:3000/users");
+        const res = await fetch("/api/users");
         if (!res.ok) {
           throw new Error("Failed to fetch users");
         }

@@ -115,7 +115,7 @@ export async function POST(req: NextRequest) {
                 let isDuplicate = false;
                 // let messages: any[] = [];
                 let messages: any[] = await fetch(
-                  `http://45.33.101.184:3000/users`
+                  `${process.env.BASE_URL}/api/users`
                 ).then((res) => res.json());
 
                 isDuplicate = messages.some(
@@ -141,7 +141,7 @@ export async function POST(req: NextRequest) {
                     )
                   );
 
-                  await fetch(`/http://45.33.101.184:3000/users`, {
+                  await fetch(`${process.env.BASE_URL}/api/users`, {
                     method: "POST",
                     headers: {
                       "Content-Type": "application/json",

@@ -41,7 +41,7 @@ export default function SendMessagePage(): JSX.Element {
         // const data: { messages: { flow_token: string }[] } = await res.json();
         // console.log("Fetched messages:", data.messages);
 
-        const res = await fetch("http://45.33.101.184:3000/users");
+        const res = await fetch("/api/users");
         if (!res.ok) {
           throw new Error("Failed to fetch users");
         }
