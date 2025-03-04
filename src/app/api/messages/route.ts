@@ -1,12 +1,12 @@
 import { NextResponse } from "next/server";
 import amqp from "amqplib";
+import getRabbitMQChannel from "@/lib/rabbitmq";
 
 const QUEUE_NAME = "whatsapp_incoming_queue";
 
 export async function GET() {
     try {
-        const connection = await amqp.connect(`${process.env.RABBITMQ_URL}`);
-        const channel = await connection.createChannel();
+        const channel = await getRabbitMQChannel();
         await channel.assertQueue(QUEUE_NAME, { durable: true });
 
         let messages: any[] = [];
@@ -21,11 +21,10 @@ export async function GET() {
                 },
                 { noAck: false }
             );
-            setTimeout(resolve, 12000);
+            setTimeout(resolve, 11000);
         });
 
         await channel.close();
-        await connection.close();
 
         return NextResponse.json({ messages });
     } catch (error) {
