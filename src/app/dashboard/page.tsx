@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { getUsers } from "@/lib/state";
 
 interface Message {
   firstName: string;
@@ -17,27 +18,79 @@ export default function Page() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // useEffect(() => {
+  //   async function fetchMessages() {
+  //     try {
+  //       const res = await fetch("/api/messages");
+  //       if (!res.ok) {
+  //         throw new Error("Failed to fetch messages");
+  //       }
+  //       const data = await res.json();
+  //       console.log("Fetched messages:", data.messages);
+
+  //       // Transform messages to replace "flow_token" with "phone"
+  //       const formattedMessages = data.messages.map((msg: Message) => ({
+  //         firstName: msg.screen_0_First_0 || "N/A",
+  //         lastName: msg.screen_0_Last_1 || "N/A",
+  //         email: msg.screen_0_Email_2 || "N/A",
+  //         phone: msg.flow_token || "N/A",
+  //       }));
+
+  //       setMessages(formattedMessages);
+  //     } catch (error) {
+  //       console.error("Error fetching messages:", error);
+  //     } finally {
+  //       setLoading(false);
+  //     }
+  //   }
+
+  //   fetchMessages();
+  // }, []);
+
+  // useEffect(() => {
+  //   async function fetchMessages() {
+  //     try {
+  //       const users = getUsers();
+  //       console.log("Fetched users:", users);
+
+  //       const formattedMessages = users.map((user: any) => ({
+  //         firstName: user.screen_0_First_0 || "N/A",
+  //         lastName: user.screen_0_Last_1 || "N/A",
+  //         email: user.screen_0_Email_2 || "N/A",
+  //         phone: user.flow_token || "N/A",
+  //       }));
+
+  //       setMessages(formattedMessages);
+  //     } catch (error) {
+  //       console.error("Error fetching messages:", error);
+  //     } finally {
+  //       setLoading(false);
+  //     }
+  //   }
+
+  //   fetchMessages();
+  // }, []);
+
   useEffect(() => {
     async function fetchMessages() {
       try {
-        const res = await fetch("/api/messages");
+        const res = await fetch("/api/users");
         if (!res.ok) {
-          throw new Error("Failed to fetch messages");
+          throw new Error("Failed to fetch users");
         }
-        const data = await res.json();
-        console.log("Fetched messages:", data.messages);
+        const users = await res.json();
+        console.log("Fetched users:", users);
 
-        // Transform messages to replace "flow_token" with "phone"
-        const formattedMessages = data.messages.map((msg: Message) => ({
-          firstName: msg.screen_0_First_0 || "N/A",
-          lastName: msg.screen_0_Last_1 || "N/A",
-          email: msg.screen_0_Email_2 || "N/A",
-          phone: msg.flow_token || "N/A",
+        const formattedMessages = users.map((user: any) => ({
+          firstName: user.screen_0_First_0 || "N/A",
+          lastName: user.screen_0_Last_1 || "N/A",
+          email: user.screen_0_Email_2 || "N/A",
+          phone: user.flow_token || "N/A",
         }));
 
         setMessages(formattedMessages);
       } catch (error) {
-        console.error("Error fetching messages:", error);
+        console.error("Error fetching users:", error);
       } finally {
         setLoading(false);
       }

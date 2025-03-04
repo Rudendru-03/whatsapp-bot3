@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
-import getRabbitMQChannel from "@/lib/rabbitmq";
+// import getRabbitMQChannel from "@/lib/rabbitmq";
 import { readExcel } from "@/lib/readExcel";
+import { addUser, getUsers } from "@/lib/state";
 
 const VERIFY_TOKEN = process.env.WHATSAPP_VERIFY_TOKEN;
 const WHATSAPP_API_TOKEN = process.env.NEXT_PUBLIC_WHATSAPP_API_TOKEN;
 const WHATSAPP_PHONE_NUMBER_ID = process.env.NEXT_PUBLIC_WHATSAPP_PHONE_NUMBER_ID;
 let messageHistory: any[] = [];
 let userStates: { [key: string]: string } = {};
-
 function log(message: string, emoji = '📄') {
     const timestamp = new Date().toISOString();
     console.log(`${emoji} [${timestamp}] ${message}`);
@@ -32,7 +32,7 @@ export async function POST(req: NextRequest) {
     try {
         const body = await req.json();
         const entry = body.entry?.[0];
-        const channel = await getRabbitMQChannel();
+        // const channel = await getRabbitMQChannel();
 
         if (entry) {
             const changes = entry.changes?.[0];
@@ -104,36 +104,41 @@ export async function POST(req: NextRequest) {
                                 const flowToken = flowResponse.flow_token === "unused" ? from : flowResponse.flow_token;
 
                                 let isDuplicate = false;
-                                let messages: any[] = [];
-
-                                await new Promise<void>((resolve) => {
-                                    channel.consume(
-                                        "whatsapp_incoming_queue",
-                                        (msg) => {
-                                            if (msg) {
-                                                const messageData = JSON.parse(msg.content.toString());
-                                                messages.push(messageData);
-                                            }
-                                        },
-                                        { noAck: false }
-                                    );
-                                    setTimeout(resolve, 1000);
-                                });
+                                // let messages: any[] = [];
+                                let messages: any[] = await fetch(`${process.env.BASE_URL}/api/users`).then(res => res.json());
 
                                 isDuplicate = messages.some(msg => msg.flow_token === flowToken);
 
                                 if (!isDuplicate) {
+                                    // log(`${from} completed form submission`, '📋');
+                                    // channel.sendToQueue(
+                                    //     "whatsapp_incoming_queue",
+                                    //     Buffer.from(
+                                    //         JSON.stringify(flowResponse, (key, value) =>
+                                    //             key === "flow_token" && value === "unused" ? from : value
+                                    //         )
+                                    //     ),
+                                    //     { persistent: true }
+                                    // );
+                                    // console.log("Form data sent to RabbitMQ");
                                     log(`${from} completed form submission`, '📋');
-                                    channel.sendToQueue(
-                                        "whatsapp_incoming_queue",
-                                        Buffer.from(
-                                            JSON.stringify(flowResponse, (key, value) =>
-                                                key === "flow_token" && value === "unused" ? from : value
-                                            )
-                                        ),
-                                        { persistent: true }
+                                    const transformedFlowResponse = JSON.parse(
+                                        JSON.stringify(flowResponse, (key, value) =>
+                                            key === "flow_token" && value === "unused" ? from : value
+                                        )
                                     );
-                                    console.log("Form data sent to RabbitMQ");
+
+                                    await fetch(`${process.env.BASE_URL}/api/users`, {
+                                        method: 'POST',
+                                        headers: {
+                                            'Content-Type': 'application/json'
+                                        },
+                                        body: JSON.stringify(transformedFlowResponse)
+                                    });
+
+                                    console.log("Form data saved to state", transformedFlowResponse);
+                                } else {
+                                    console.log("Duplicate entry");
                                 }
 
                                 messageHistory.push({

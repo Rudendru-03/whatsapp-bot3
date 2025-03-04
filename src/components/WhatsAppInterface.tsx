@@ -4,6 +4,7 @@ import { JSX, useState, useRef, useEffect } from "react";
 import { MessageSquareMore } from "lucide-react";
 import { Button } from "./ui/button";
 import pLimit from 'p-limit';
+import { getUsers } from "@/lib/state";
 
 interface Message {
   content: string;
@@ -33,15 +34,22 @@ export default function SendMessagePage(): JSX.Element {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     async function fetchMessages() {
       try {
-        const res = await fetch("/api/messages");
+        // const res = await fetch("/api/messages");
+        // if (!res.ok) {
+        //   throw new Error("Failed to fetch messages");
+        // }
+        // const data: { messages: { flow_token: string }[] } = await res.json();
+        // console.log("Fetched messages:", data.messages);
+
+        const res = await fetch("/api/users");
         if (!res.ok) {
-          throw new Error("Failed to fetch messages");
+          throw new Error("Failed to fetch users");
         }
-        const data: { messages: { flow_token: string }[] } = await res.json();
-        console.log("Fetched messages:", data.messages);
+        const users: { flow_token: string }[] = await res.json();
+        console.log("Fetched users:", users);
 
         // Extract unique phone numbers
-        const numbers = [...new Set(data.messages.map((msg: any) => String(msg.flow_token)))];
+        const numbers = [...new Set(users.map((user: any) => String(user.flow_token)))];
         setPhoneNumbers(numbers);
 
         console.log("Extracted phone numbers:", numbers);

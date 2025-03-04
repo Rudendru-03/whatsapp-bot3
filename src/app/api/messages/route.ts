@@ -24,7 +24,6 @@ export async function GET() {
             setTimeout(resolve, 11000);
         });
 
-        await channel.close();
 
         return NextResponse.json({ messages });
     } catch (error) {
